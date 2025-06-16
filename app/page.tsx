@@ -1,11 +1,17 @@
-"use client"
+"use client";
 
-import { useState, useEffect, useRef } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Badge } from "@/components/ui/badge"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { useState, useEffect, useRef } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import {
   Code,
   Coins,
@@ -30,32 +36,113 @@ import {
   Filter,
   Play,
   Eye,
-} from "lucide-react"
-import Link from "next/link"
-import { useTheme } from "next-themes"
-import { motion, useScroll, AnimatePresence } from "framer-motion"
-import ParticleBackground from "@/components/ParticleBackground"
-import AnimatedCursor from "@/components/AnimatedCursor"
-import GlassCard from "@/components/GlassCard"
-import projects from "@/lib/projects"
-import { useRouter } from "next/navigation"
+} from "lucide-react";
+import Link from "next/link";
+import { useTheme } from "next-themes";
+import { motion, useScroll, AnimatePresence } from "framer-motion";
+import ParticleBackground from "@/components/ParticleBackground";
+import AnimatedCursor from "@/components/AnimatedCursor";
+import GlassCard from "@/components/GlassCard";
+import projects from "@/lib/projects";
+import { useRouter } from "next/navigation";
 
+// Greeting Screen Component
+function GreetingScreen({ onComplete }: { onComplete: () => void }) {
+  const [currentText, setCurrentText] = useState("");
+  const [showSubtext, setShowSubtext] = useState(false);
+  const greetingText = "नमस्ते"; // Namaste in Hindi
+  const subtitleText = "Welcome to my digital world";
 
+  useEffect(() => {
+    let index = 0;
+    const typeText = () => {
+      if (index < greetingText.length) {
+        setCurrentText(greetingText.slice(0, index + 1));
+        index++;
+        setTimeout(typeText, 200);
+      } else {
+        setTimeout(() => setShowSubtext(true), 500);
+        setTimeout(onComplete, 3000);
+      }
+    };
+    
+    const timer = setTimeout(typeText, 1000);
+    return () => clearTimeout(timer);
+  }, [onComplete]);
+
+  return (
+    <motion.div
+      className="fixed inset-0 bg-black z-50 flex items-center justify-center"
+      initial={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 1 }}
+    >
+      <ParticleBackground />
+      
+      <div className="text-center relative z-10">
+        <motion.h1
+          className="text-8xl md:text-9xl font-bold bg-gradient-to-r from-blue-400 via-purple-500 to-cyan-400 bg-clip-text text-transparent mb-8"
+          initial={{ scale: 0.5, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
+        >
+          {currentText}
+          <motion.span
+            animate={{ opacity: [1, 0] }}
+            transition={{ duration: 0.8, repeat: Number.POSITIVE_INFINITY }}
+            className="inline-block w-1 h-24 bg-blue-500 ml-4"
+          />
+        </motion.h1>
+
+        <AnimatePresence>
+          {showSubtext && (
+            <motion.p
+              className="text-2xl text-gray-300 font-light"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8 }}
+            >
+              {subtitleText}
+            </motion.p>
+          )}
+        </AnimatePresence>
+
+        {/* Decorative elements */}
+        <motion.div
+          className="absolute -top-20 -left-20 w-40 h-40 border-2 border-blue-500/30 rounded-full"
+          animate={{ rotate: 360, scale: [1, 1.2, 1] }}
+          transition={{ duration: 8, repeat: Number.POSITIVE_INFINITY }}
+        />
+        <motion.div
+          className="absolute -bottom-20 -right-20 w-32 h-32 border-2 border-purple-500/30 rounded-lg"
+          animate={{ rotate: -360, y: [-20, 20, -20] }}
+          transition={{ duration: 6, repeat: Number.POSITIVE_INFINITY }}
+        />
+      </div>
+    </motion.div>
+  );
+}
 
 // Typing Animation Component
-function TypingAnimation({ text, className = "" }: { text: string; className?: string }) {
-  const [displayText, setDisplayText] = useState("")
-  const [currentIndex, setCurrentIndex] = useState(0)
+function TypingAnimation({
+  text,
+  className = "",
+}: {
+  text: string;
+  className?: string;
+}) {
+  const [displayText, setDisplayText] = useState("");
+  const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
     if (currentIndex < text.length) {
       const timeout = setTimeout(() => {
-        setDisplayText((prev) => prev + text[currentIndex])
-        setCurrentIndex((prev) => prev + 1)
-      }, 100)
-      return () => clearTimeout(timeout)
+        setDisplayText((prev) => prev + text[currentIndex]);
+        setCurrentIndex((prev) => prev + 1);
+      }, 100);
+      return () => clearTimeout(timeout);
     }
-  }, [currentIndex, text])
+  }, [currentIndex, text]);
 
   return (
     <span className={className}>
@@ -66,18 +153,20 @@ function TypingAnimation({ text, className = "" }: { text: string; className?: s
         className="inline-block w-0.5 h-6 bg-blue-500 ml-1"
       />
     </span>
-  )
+  );
 }
 
 export default function Portfolio() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [selectedProject, setSelectedProject] = useState<number | null>(null)
-  const [projectFilter, setProjectFilter] = useState("All")
-  const [showScrollTop, setShowScrollTop] = useState(false)
-  const { theme, setTheme } = useTheme()
-  const { scrollYProgress } = useScroll()
-  const heroRef = useRef(null)
-  const router = useRouter()
+  const [showGreeting, setShowGreeting] = useState(true);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [selectedProject, setSelectedProject] = useState<number | null>(null);
+  const [projectFilter, setProjectFilter] = useState("All");
+  const [showScrollTop, setShowScrollTop] = useState(false);
+  const { theme, setTheme } = useTheme();
+  const { scrollYProgress } = useScroll();
+  const heroRef = useRef(null);
+  const router = useRouter();
+
   const services = [
     {
       icon: Code,
@@ -90,70 +179,90 @@ export default function Portfolio() {
     {
       icon: Coins,
       title: "Blockchain Integration",
-      description: "Smart contract development with Solidity, Web3.js, and secure crypto payment implementations.",
+      description:
+        "Smart contract development with Solidity, Web3.js, and secure crypto payment implementations.",
       color: "from-purple-500 to-pink-500",
       delay: 0.2,
     },
     {
       icon: Zap,
       title: "Real-Time Apps",
-      description: "WebSockets, WebRTC, and scalable backend systems with Kafka for live data applications.",
+      description:
+        "WebSockets, WebRTC, and scalable backend systems with Kafka for live data applications.",
       color: "from-green-500 to-emerald-500",
       delay: 0.3,
     },
     {
       icon: Cpu,
       title: "IoT Integrations",
-      description: "ESP32 development, sensor data tracking, and real-time dashboards for connected devices.",
+      description:
+        "ESP32 development, sensor data tracking, and real-time dashboards for connected devices.",
       color: "from-orange-500 to-red-500",
       delay: 0.4,
     },
-  ]
-
-
+  ];
 
   const testimonials = [
     {
-      quote: "Ujjwal is an incredibly fast problem solver who can turn ideas into working apps in record time.",
-      author: "Hackathon Teammate",
-      role: "Software Engineer",
+      quote:
+        "Ujjwal is an incredibly fast problem solver who can turn ideas into working apps in record time.",
+      author: "Tansihq Maheshwari",
+      role: "Hackathon Teammate",
       avatar: "/placeholder.svg?height=60&width=60",
     },
     {
-      quote: "His expertise in blockchain and real-time systems made our project stand out in the competition.",
-      author: "Project Mentor",
-      role: "Tech Lead",
+      quote:
+        "His ability to swiftly adapt to new technologies and deliver reliable, scalable systems has been instrumental to our product's success. A dependable full-stack developer with a sharp eye for clean, maintainable code.",
+      author: "Dheeraj",
+      role: "CTO, Focus Desk",
       avatar: "/placeholder.svg?height=60&width=60",
     },
-  ]
+  ];
 
-  const filterCategories = ["All", "WebApp", "Blockchain", "IoT"]
+  const filterCategories = ["All", "WebApp", "Blockchain", "IoT"];
   const filteredProjects =
-    projectFilter === "All" ? projects : projects.filter((project) => project.category === projectFilter)
+    projectFilter === "All"
+      ? projects
+      : projects.filter((project) => project.category === projectFilter);
 
   useEffect(() => {
     const handleScroll = () => {
-      setShowScrollTop(window.scrollY > 400)
-    }
-    window.addEventListener("scroll", handleScroll)
-    return () => window.removeEventListener("scroll", handleScroll)
-  }, [])
+      setShowScrollTop(window.scrollY > 400);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: "smooth" })
-  }
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   const handleProjectClick = (projectId: number) => {
-    router.push(`/projects/${projectId}`)
+    router.push(`/projects/${projectId}`);
+  };
+
+  const handleGreetingComplete = () => {
+    setShowGreeting(false);
+  };
+
+  // Show greeting screen first
+  if (showGreeting) {
+    return <GreetingScreen onComplete={handleGreetingComplete} />;
   }
+
   return (
-    <div className="min-h-screen bg-black text-white overflow-x-hidden">
+    <motion.div
+      className="min-h-screen bg-black text-white overflow-x-hidden"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.8 }}
+    >
       <AnimatedCursor />
 
       {/* Progress Bar */}
       <motion.div
         className="fixed top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-purple-500 z-50"
         style={{ scaleX: scrollYProgress }}
-
       />
 
       {/* Navigation */}
@@ -174,39 +283,28 @@ export default function Portfolio() {
 
             {/* Desktop Navigation */}
             <div className="hidden md:flex space-x-8">
-              {["Home", "Services", "Projects", "About", "Contact"].map((item, index) => (
-                <motion.div
-                  key={item}
-                  initial={{ opacity: 0, y: -20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                >
-                  <Link
-                    href={`#${item.toLowerCase()}`}
-                    className="hover:text-blue-400 transition-colors relative group"
-                    data-interactive
+              {["Home", "Services", "Projects", "About", "Contact"].map(
+                (item, index) => (
+                  <motion.div
+                    key={item}
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
                   >
-                    {item}
-                    <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-500 group-hover:w-full transition-all duration-300" />
-                  </Link>
-                </motion.div>
-              ))}
+                    <Link
+                      href={`#${item.toLowerCase()}`}
+                      className="hover:text-blue-400 transition-colors relative group"
+                      data-interactive
+                    >
+                      {item}
+                      <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-500 group-hover:w-full transition-all duration-300" />
+                    </Link>
+                  </motion.div>
+                )
+              )}
             </div>
 
             <div className="flex items-center space-x-4">
-              <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-                  className="relative overflow-hidden"
-                  data-interactive
-                >
-                  <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-                  <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-                </Button>
-              </motion.div>
-
               <Button
                 variant="ghost"
                 size="icon"
@@ -214,7 +312,11 @@ export default function Portfolio() {
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
                 data-interactive
               >
-                {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                {isMenuOpen ? (
+                  <X className="h-5 w-5" />
+                ) : (
+                  <Menu className="h-5 w-5" />
+                )}
               </Button>
             </div>
           </div>
@@ -229,22 +331,24 @@ export default function Portfolio() {
                 exit={{ opacity: 0, height: 0 }}
               >
                 <div className="flex flex-col space-y-4 pt-4">
-                  {["Home", "Services", "Projects", "About", "Contact"].map((item, index) => (
-                    <motion.div
-                      key={item}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.1 }}
-                    >
-                      <Link
-                        href={`#${item.toLowerCase()}`}
-                        className="hover:text-blue-400 transition-colors"
-                        onClick={() => setIsMenuOpen(false)}
+                  {["Home", "Services", "Projects", "About", "Contact"].map(
+                    (item, index) => (
+                      <motion.div
+                        key={item}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.1 }}
                       >
-                        {item}
-                      </Link>
-                    </motion.div>
-                  ))}
+                        <Link
+                          href={`#${item.toLowerCase()}`}
+                          className="hover:text-blue-400 transition-colors"
+                          onClick={() => setIsMenuOpen(false)}
+                        >
+                          {item}
+                        </Link>
+                      </motion.div>
+                    )
+                  )}
                 </div>
               </motion.div>
             )}
@@ -253,7 +357,11 @@ export default function Portfolio() {
       </motion.nav>
 
       {/* Hero Section */}
-      <section id="home" className="relative min-h-screen flex items-center justify-center pt-20" ref={heroRef}>
+      <section
+        id="home"
+        className="relative min-h-screen flex items-center justify-center pt-20"
+        ref={heroRef}
+      >
         <ParticleBackground />
 
         <div className="container mx-auto px-4 text-center relative z-10">
@@ -281,7 +389,9 @@ export default function Portfolio() {
               <p className="text-xl md:text-2xl mb-4 text-gray-300">
                 <TypingAnimation text="I build modern, scalable, and secure web applications for startups & businesses." />
               </p>
-              <p className="text-lg text-gray-400">Full Stack Developer | Web Apps | Blockchain | Real-Time Systems</p>
+              <p className="text-lg text-gray-400">
+                Full Stack Developer | Web Apps | Blockchain | Real-Time Systems
+              </p>
             </motion.div>
 
             <motion.div
@@ -290,10 +400,11 @@ export default function Portfolio() {
               animate={{ y: 0, opacity: 1 }}
               transition={{ duration: 1, delay: 0.6 }}
             >
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Link
-                  href={`#contact`}
-                >
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Link href={`#contact`}>
                   <Button
                     size="lg"
                     className="w-full sm:w-auto bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 shadow-lg shadow-blue-500/25"
@@ -305,25 +416,57 @@ export default function Portfolio() {
                 </Link>
               </motion.div>
 
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
                 <Button
                   variant="outline"
                   size="lg"
                   className="w-full sm:w-auto border-blue-500/50 hover:bg-blue-500/10"
                   data-interactive
+                  onClick={() =>
+                    window.open("https://github.com/ujjwalparashar30", "_blank")
+                  }
                 >
-                  <Eye className="mr-2 h-5 w-5" />
-                  View Portfolio
+                  <Github className="mr-2 h-5 w-5" />
+                  GitHub Profile
                 </Button>
               </motion.div>
 
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="w-full sm:w-auto border-blue-500/50 hover:bg-blue-500/10"
+                  data-interactive
+                  onClick={() =>
+                    window.open(
+                      "https://www.linkedin.com/in/ujjwal-parashar-180798289/",
+                      "_blank"
+                    )
+                  }
+                >
+                  <Linkedin className="mr-2 h-5 w-5" />
+                  LinkedIn Profile
+                </Button>
+              </motion.div>
+
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
                 <Button
                   variant="outline"
                   size="lg"
                   className="w-full sm:w-auto border-purple-500/50 hover:bg-purple-500/10"
                   data-interactive
-                  onClick={() => window.open("/ujjwal_resume_2025 (1).pdf", "_blank")}
+                  onClick={() =>
+                    window.open("/ujjwal_resume_2025 (1).pdf", "_blank")
+                  }
                 >
                   <Download className="mr-2 h-5 w-5" />
                   Download Resume
@@ -360,7 +503,8 @@ export default function Portfolio() {
               Services
             </h2>
             <p className="text-lg text-gray-400 max-w-2xl mx-auto">
-              I offer comprehensive development services to help bring your ideas to life
+              I offer comprehensive development services to help bring your
+              ideas to life
             </p>
           </motion.div>
 
@@ -373,7 +517,10 @@ export default function Portfolio() {
                 transition={{ duration: 0.8, delay: service.delay }}
                 viewport={{ once: true }}
               >
-                <GlassCard className="text-center p-6 h-full group cursor-pointer" data-interactive>
+                <GlassCard
+                  className="text-center p-6 h-full group cursor-pointer"
+                  data-interactive
+                >
                   <motion.div
                     className={`w-16 h-16 bg-gradient-to-r ${service.color} rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg`}
                     whileHover={{ scale: 1.1, rotate: 5 }}
@@ -386,9 +533,14 @@ export default function Portfolio() {
                     {service.title}
                   </h3>
 
-                  <p className="text-gray-400 mb-6 leading-relaxed">{service.description}</p>
+                  <p className="text-gray-400 mb-6 leading-relaxed">
+                    {service.description}
+                  </p>
 
-                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
                     <Link href="#contact">
                       <Button
                         variant="outline"
@@ -420,20 +572,26 @@ export default function Portfolio() {
               Featured Projects
             </h2>
             <p className="text-lg text-gray-400 max-w-2xl mx-auto mb-8">
-              A showcase of my recent work in web development, blockchain, and IoT
+              A showcase of my recent work in web development, blockchain, and
+              IoT
             </p>
 
             {/* Filter Buttons */}
             <div className="flex flex-wrap justify-center gap-4 mb-8">
               {filterCategories.map((category) => (
-                <motion.div key={category} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <motion.div
+                  key={category}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
                   <Button
                     variant={projectFilter === category ? "default" : "outline"}
                     onClick={() => setProjectFilter(category)}
-                    className={`${projectFilter === category
+                    className={`${
+                      projectFilter === category
                         ? "bg-gradient-to-r from-blue-500 to-purple-600"
                         : "border-gray-600 hover:border-blue-500"
-                      }`}
+                    }`}
                     data-interactive
                   >
                     <Filter className="mr-2 h-4 w-4" />
@@ -455,7 +613,11 @@ export default function Portfolio() {
                   transition={{ duration: 0.6, delay: index * 0.1 }}
                   layout
                 >
-                  <GlassCard className="overflow-hidden group cursor-pointer h-full" data-interactive onClick={() => handleProjectClick(project.id)}>
+                  <GlassCard
+                    className="overflow-hidden group cursor-pointer h-full"
+                    data-interactive
+                    onClick={() => handleProjectClick(project.id)}
+                  >
                     <div className="relative aspect-video overflow-hidden">
                       <motion.img
                         src={project.image}
@@ -471,12 +633,22 @@ export default function Portfolio() {
                         whileHover={{ y: 0 }}
                         transition={{ duration: 0.3 }}
                       >
-                        <Button variant="secondary" size="icon" asChild data-interactive>
+                        <Button
+                          variant="secondary"
+                          size="icon"
+                          asChild
+                          data-interactive
+                        >
                           <Link href={project.github}>
                             <Github className="h-4 w-4" />
                           </Link>
                         </Button>
-                        <Button variant="secondary" size="icon" asChild data-interactive>
+                        <Button
+                          variant="secondary"
+                          size="icon"
+                          asChild
+                          data-interactive
+                        >
                           <Link href={project.demo}>
                             <ExternalLink className="h-4 w-4" />
                           </Link>
@@ -497,7 +669,9 @@ export default function Portfolio() {
                           </DialogTrigger>
                           <DialogContent className="max-w-4xl bg-black/90 border-gray-800">
                             <DialogHeader>
-                              <DialogTitle className="text-2xl text-white">{project.title}</DialogTitle>
+                              <DialogTitle className="text-2xl text-white">
+                                {project.title}
+                              </DialogTitle>
                             </DialogHeader>
                             <div className="grid md:grid-cols-2 gap-6">
                               <div>
@@ -508,12 +682,19 @@ export default function Portfolio() {
                                 />
                               </div>
                               <div className="space-y-4">
-                                <p className="text-gray-300">{project.longDescription}</p>
+                                <p className="text-gray-300">
+                                  {project.longDescription}
+                                </p>
                                 <div>
-                                  <h4 className="font-semibold text-white mb-2">Key Features:</h4>
+                                  <h4 className="font-semibold text-white mb-2">
+                                    Key Features:
+                                  </h4>
                                   <ul className="space-y-1">
                                     {project.features.map((feature, idx) => (
-                                      <li key={idx} className="text-gray-400 flex items-center">
+                                      <li
+                                        key={idx}
+                                        className="text-gray-400 flex items-center"
+                                      >
                                         <Star className="h-3 w-3 mr-2 text-blue-400" />
                                         {feature}
                                       </li>
@@ -527,7 +708,11 @@ export default function Portfolio() {
                                       GitHub
                                     </Link>
                                   </Button>
-                                  <Button variant="outline" asChild data-interactive>
+                                  <Button
+                                    variant="outline"
+                                    asChild
+                                    data-interactive
+                                  >
                                     <Link href={project.demo}>
                                       <Play className="mr-2 h-4 w-4" />
                                       Live Demo
@@ -540,7 +725,9 @@ export default function Portfolio() {
                         </Dialog>
                       </div>
 
-                      <p className="text-gray-400 mb-4 leading-relaxed">{project.description}</p>
+                      <p className="text-gray-400 mb-4 leading-relaxed">
+                        {project.description}
+                      </p>
 
                       <div className="flex flex-wrap gap-2">
                         {project.tags.map((tag, tagIndex) => (
@@ -596,8 +783,12 @@ export default function Portfolio() {
                         <GraduationCap className="h-6 w-6 text-white" />
                       </div>
                       <div>
-                        <h3 className="font-semibold text-white text-lg">Education</h3>
-                        <p className="text-gray-400">3rd Year B.Tech ECE @ DTU (CGPA: 8.9)</p>
+                        <h3 className="font-semibold text-white text-lg">
+                          Education
+                        </h3>
+                        <p className="text-gray-400">
+                          3rd Year B.Tech ECE @ DTU (CGPA: 8.9)
+                        </p>
                       </div>
                     </motion.div>
 
@@ -610,8 +801,12 @@ export default function Portfolio() {
                         <Trophy className="h-6 w-6 text-white" />
                       </div>
                       <div>
-                        <h3 className="font-semibold text-white text-lg">Achievements</h3>
-                        <p className="text-gray-400">Hackathon Winner (Diamante Net, LIVE THE CODE 3.0)</p>
+                        <h3 className="font-semibold text-white text-lg">
+                          Achievements
+                        </h3>
+                        <p className="text-gray-400">
+                          Hackathon Winner (Diamante Net, LIVE THE CODE 3.0)
+                        </p>
                       </div>
                     </motion.div>
 
@@ -624,9 +819,12 @@ export default function Portfolio() {
                         <Star className="h-6 w-6 text-white" />
                       </div>
                       <div>
-                        <h3 className="font-semibold text-white text-lg">Passion</h3>
+                        <h3 className="font-semibold text-white text-lg">
+                          Passion
+                        </h3>
                         <p className="text-gray-400">
-                          Building impactful digital products with cutting-edge technology
+                          Building impactful digital products with cutting-edge
+                          technology
                         </p>
                       </div>
                     </motion.div>
@@ -634,13 +832,17 @@ export default function Portfolio() {
 
                   <div className="mt-8 space-y-4">
                     <p className="text-gray-400 leading-relaxed">
-                      Passionate about building impactful digital products that solve real-world problems. With a strong
-                      background in electronics, real-time systems, and cloud infrastructure, I bring a unique
-                      perspective to software development.
+                      Passionate about building impactful digital products that
+                      solve real-world problems. With a strong background in
+                      electronics, real-time systems, and cloud infrastructure,
+                      I bring a unique perspective to software development.
                     </p>
 
                     <div className="flex flex-wrap gap-4">
-                      <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                      <motion.div
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
                         <Button
                           variant="outline"
                           asChild
@@ -654,7 +856,10 @@ export default function Portfolio() {
                         </Button>
                       </motion.div>
 
-                      <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                      <motion.div
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
                         <Button
                           variant="outline"
                           asChild
@@ -668,12 +873,17 @@ export default function Portfolio() {
                         </Button>
                       </motion.div>
 
-                      <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                      <motion.div
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
                         <Button
                           variant="outline"
                           className="border-green-500/50 hover:bg-green-500/20"
                           data-interactive
-                          onClick={() => window.open("/ujjwal_resume_2025 (1).pdf", "_blank")}
+                          onClick={() =>
+                            window.open("/ujjwal_resume_2025 (1).pdf", "_blank")
+                          }
                         >
                           <Download className="mr-2 h-4 w-4" />
                           Resume PDF
@@ -691,14 +901,40 @@ export default function Portfolio() {
                 viewport={{ once: true }}
               >
                 <GlassCard className="p-8">
-                  <h3 className="text-2xl font-bold mb-6 text-white">Technical Skills</h3>
+                  <h3 className="text-2xl font-bold mb-6 text-white">
+                    Technical Skills
+                  </h3>
                   <div className="space-y-6">
                     {[
-                      { category: "Frontend", skills: ["React", "Next.js", "TypeScript", "Tailwind CSS", "Three.js"] },
-                      { category: "Backend", skills: ["Node.js", "PostgreSQL", "MongoDB", "Kafka", "WebSockets"] },
+                      {
+                        category: "Frontend",
+                        skills: [
+                          "React",
+                          "Next.js",
+                          "TypeScript",
+                          "Tailwind CSS",
+                          "Three.js",
+                        ],
+                      },
+                      {
+                        category: "Backend",
+                        skills: [
+                          "Node.js",
+                          "PostgreSQL",
+                          "MongoDB",
+                          "Kafka",
+                          "WebSockets",
+                        ],
+                      },
                       {
                         category: "Blockchain & IoT",
-                        skills: ["Solidity", "Web3.js", "ESP32", "Arduino", "Sensor Integration"],
+                        skills: [
+                          "Solidity",
+                          "Web3.js",
+                          "ESP32",
+                          "Arduino",
+                          "Sensor Integration",
+                        ],
                       },
                     ].map((skillGroup, index) => (
                       <motion.div
@@ -708,7 +944,9 @@ export default function Portfolio() {
                         transition={{ delay: index * 0.1 }}
                         viewport={{ once: true }}
                       >
-                        <h4 className="font-semibold mb-3 text-blue-400">{skillGroup.category}</h4>
+                        <h4 className="font-semibold mb-3 text-blue-400">
+                          {skillGroup.category}
+                        </h4>
                         <div className="flex flex-wrap gap-2">
                           {skillGroup.skills.map((skill, skillIndex) => (
                             <motion.div
@@ -759,7 +997,10 @@ export default function Portfolio() {
                 transition={{ duration: 0.8, delay: index * 0.2 }}
                 viewport={{ once: true }}
               >
-                <GlassCard className="p-8 text-center relative overflow-hidden group" data-interactive>
+                <GlassCard
+                  className="p-8 text-center relative overflow-hidden group"
+                  data-interactive
+                >
                   <motion.div
                     className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-purple-500"
                     initial={{ scaleX: 0 }}
@@ -790,8 +1031,12 @@ export default function Portfolio() {
                       className="w-12 h-12 rounded-full border-2 border-blue-500/50"
                     />
                     <div>
-                      <p className="font-semibold text-white">{testimonial.author}</p>
-                      <p className="text-sm text-gray-400">{testimonial.role}</p>
+                      <p className="font-semibold text-white">
+                        {testimonial.author}
+                      </p>
+                      <p className="text-sm text-gray-400">
+                        {testimonial.role}
+                      </p>
                     </div>
                   </motion.div>
                 </GlassCard>
@@ -815,7 +1060,9 @@ export default function Portfolio() {
               <h2 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-pink-400 to-red-500 bg-clip-text text-transparent">
                 Let's Work Together
               </h2>
-              <p className="text-lg text-gray-400">Got an idea? Let's build something great together.</p>
+              <p className="text-lg text-gray-400">
+                Got an idea? Let's build something great together.
+              </p>
             </div>
 
             <div className="grid md:grid-cols-2 gap-12">
@@ -826,12 +1073,26 @@ export default function Portfolio() {
                 viewport={{ once: true }}
               >
                 <GlassCard className="p-8">
-                  <h3 className="text-2xl font-bold mb-8 text-white">Get in Touch</h3>
+                  <h3 className="text-2xl font-bold mb-8 text-white">
+                    Get in Touch
+                  </h3>
                   <div className="space-y-6">
                     {[
-                      { icon: Mail, text: "ujjwalparashar_23ec218@dtu.ac.in", color: "from-blue-500 to-cyan-500" },
-                      { icon: Phone, text: "+91-9205290713", color: "from-green-500 to-emerald-500" },
-                      { icon: MapPin, text: "Delhi, India", color: "from-purple-500 to-pink-500" },
+                      {
+                        icon: Mail,
+                        text: "ujjwalparashar_23ec218@dtu.ac.in",
+                        color: "from-blue-500 to-cyan-500",
+                      },
+                      {
+                        icon: Phone,
+                        text: "+91-9205290713",
+                        color: "from-green-500 to-emerald-500",
+                      },
+                      {
+                        icon: MapPin,
+                        text: "Delhi, India",
+                        color: "from-purple-500 to-pink-500",
+                      },
                     ].map((contact, index) => (
                       <motion.div
                         key={index}
@@ -845,7 +1106,9 @@ export default function Portfolio() {
                         >
                           <contact.icon className="h-6 w-6 text-white" />
                         </div>
-                        <span className="text-gray-300 group-hover:text-white transition-colors">{contact.text}</span>
+                        <span className="text-gray-300 group-hover:text-white transition-colors">
+                          {contact.text}
+                        </span>
                       </motion.div>
                     ))}
                   </div>
@@ -859,7 +1122,11 @@ export default function Portfolio() {
                 viewport={{ once: true }}
               >
                 <GlassCard className="p-8">
-                  <form action="https://formsubmit.co/whomtalkto@gmail.com" method="POST" className="space-y-6">
+                  <form
+                    action="https://formsubmit.co/whomtalkto@gmail.com"
+                    method="POST"
+                    className="space-y-6"
+                  >
                     <motion.div
                       initial={{ opacity: 0, y: 20 }}
                       whileInView={{ opacity: 1, y: 0 }}
@@ -914,7 +1181,10 @@ export default function Portfolio() {
                       >
                         <motion.span
                           animate={{ scale: [1, 1.05, 1] }}
-                          transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY }}
+                          transition={{
+                            duration: 2,
+                            repeat: Number.POSITIVE_INFINITY,
+                          }}
                         >
                           Send Message
                         </motion.span>
@@ -938,7 +1208,9 @@ export default function Portfolio() {
               whileInView={{ opacity: 1 }}
               transition={{ duration: 0.8 }}
             >
-              <p className="text-sm text-gray-400">© 2025 Ujjwal Parashar. Freelance Web Developer for Hire.</p>
+              <p className="text-sm text-gray-400">
+                © 2025 Ujjwal Parashar. Freelance Web Developer for Hire.
+              </p>
             </motion.div>
 
             <motion.div
@@ -947,23 +1219,29 @@ export default function Portfolio() {
               whileInView={{ opacity: 1 }}
               transition={{ duration: 0.8, delay: 0.2 }}
             >
-              {["About", "Projects", "Contact", "GitHub", "LinkedIn"].map((item, index) => (
-                <motion.div key={item} whileHover={{ y: -2 }} transition={{ type: "spring", stiffness: 300 }}>
-                  <Link
-                    href={
-                      item === "GitHub"
-                        ? "https://github.com/ujjwalparashar30"
-                        : item === "LinkedIn"
+              {["About", "Projects", "Contact", "GitHub", "LinkedIn"].map(
+                (item, index) => (
+                  <motion.div
+                    key={item}
+                    whileHover={{ y: -2 }}
+                    transition={{ type: "spring", stiffness: 300 }}
+                  >
+                    <Link
+                      href={
+                        item === "GitHub"
+                          ? "https://github.com/ujjwalparashar30"
+                          : item === "LinkedIn"
                           ? "https://linkedin.com/in/ujjwal-parashar-180798289"
                           : `#${item.toLowerCase()}`
-                    }
-                    className="text-sm hover:text-blue-400 transition-colors"
-                    data-interactive
-                  >
-                    {item}
-                  </Link>
-                </motion.div>
-              ))}
+                      }
+                      className="text-sm hover:text-blue-400 transition-colors"
+                      data-interactive
+                    >
+                      {item}
+                    </Link>
+                  </motion.div>
+                )
+              )}
             </motion.div>
           </div>
         </div>
@@ -986,6 +1264,6 @@ export default function Portfolio() {
           </motion.button>
         )}
       </AnimatePresence>
-    </div>
-  )
+    </motion.div>
+  );
 }
